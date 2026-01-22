@@ -1,0 +1,59 @@
+spring:
+  application:
+    name: cine-hex
+
+  datasource:
+    url: jdbc:h2:file:./data/cinehexdb;AUTO_SERVER_PORT=9090;DB_CLOSE_DELAY=-1;MODE=MySQL
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: admin123
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+      settings:
+        web-allow-others: true
+        trace: false
+
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        use_sql_comments: true
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          # Debe apuntar a tu Auth Server
+          issuer-uri: http://localhost:9000
+
+  rabbitmq:
+    host: 172.200.176.197
+    port: 5672
+    username: admin        # ¡El usuario que creaste en el VPS!
+    password: SecurePass2026
+
+# Configuración adicional para H2
+h2:
+  tcp:
+    port: 9092
+  web:
+    port: 8082
+
+springdoc:
+  api-docs:
+    path: /api/v1/public/v3/api-docs # <--- ¡Aquí está la magia!
+  swagger-ui:
+    path: /api/v1/public/swagger-ui.html
