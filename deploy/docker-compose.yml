@@ -1,11 +1,67 @@
 version: '3.8'
 services:
+  auth:
+    container_name: cinehex-auth-server
+    image: ghcr.io/luisernesto1234/ms-cinehex-auth-server:latest
+    restart: always
+    env_file: .env
+    depends_on:
+      - rabbitmq # Esperamos a que Rabbit arranque
+    networks:
+      - cinehex-red
+
+  resource:
+    container_name: cinehex-resource
+    image: ghcr.io/luisernesto1234/ms-cinehex-resource:latest
+    restart: always
+    env_file: .env
+    depends_on:
+      - rabbitmq
+    networks:
+      - cinehex-red
+
+  gateway:
+    container_name: cinehex-gateway
+    image: ghcr.io/luisernesto1234/cinehex-gateway:latest
+    ports:
+      - "${SERVER_GATEWAY_PORT}:${SERVER_GATEWAY_PORT}"
+    depends_on:
+      - auth
+      - resource
+    networks:
+      - cinehex-red
+
   rabbitmq:
     image: rabbitmq:3-management
     container_name: cinehex-rabbit
+    restart: always
     ports:
-      - "5672:5672"   # Puerto de mensajería (AMQP)
-      - "15672:15672" # Interfaz Web de gestión
+      - "${RABBITMQ_PORT}:${RABBITMQ_PORT}"
+      - "15672:15672"
     environment:
-      RABBITMQ_DEFAULT_USER: guest
-      RABBITMQ_DEFAULT_PASS: guest
+      RABBITMQ_DEFAULT_USER: ${RABBIT_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBIT_PASS}
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - cinehex-red
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: cinehex-postgres
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "${DB_PORT}:${DB_PORT}"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+networks:
+  cinehex-red:
+    driver: bridge
+
+volumes:
+  rabbitmq_data:
+  pgdata:
